@@ -26,7 +26,7 @@ class UserController {
                     errorMessage: nil
                 )
                 body.id = users.count + 1
-                body.create(on: req.db)
+                let _ = body.create(on: req.db)
             }
             else {
                 response = DefaultResponse(
@@ -37,7 +37,6 @@ class UserController {
             }
             return response
         }
-        
         return result
     }
 }
