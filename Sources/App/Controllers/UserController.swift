@@ -86,4 +86,86 @@ class UserController {
         }
         return result
     }
+    
+    func login(_ req: Request) throws -> EventLoopFuture<LoginResponse> {
+        guard let body = try? req.content.decode(LoginRequest.self) else {
+            throw Abort(.badRequest)
+        }
+        
+        print(body)
+        
+        let users = User.query(on: req.db).all()
+        let result: EventLoopFuture<LoginResponse> = users.map { (users: [User]) -> LoginResponse in
+            let passwordHash = Crypto.MD5(body.password)
+            let users = users.filter {($0.login == body.login) && ($0.passwordHash == passwordHash)}
+            guard !users.isEmpty else {
+                return LoginResponse(
+                    result: 0,
+                    user: nil,
+                    token: nil,
+                    errorMessage: "Wrong login or password"
+                )
+            }
+            
+            let user = users.first!
+            let token = Crypto.MD5(String(user.id!))
+            user.token = token
+            let userData = UserData(id: user.id!,
+                                    login: user.login,
+                                    name: user.name,
+                                    lastName: user.lastName,
+                                    email: user.email,
+                                    gender: user.gender,
+                                    creditCard: user.creditCard,
+                                    bio: user.bio
+            )
+            let response = LoginResponse(
+                result: 1,
+                user: userData,
+                token: token,
+                errorMessage: nil
+            )
+            let _ = user.update(on: req.db)
+            return response
+        }
+        return result
+    }
+    
+    func logout(_ req: Request) throws -> EventLoopFuture<DefaultResponse> {
+        guard let body = try? req.content.decode(LogoutRequest.self) else {
+            throw Abort(.badRequest)
+        }
+        
+        print(body)
+        
+        let users = User.query(on: req.db).all()
+        let result: EventLoopFuture<DefaultResponse> = users.map { (users: [User]) -> DefaultResponse in
+            let users = users.filter { $0.id == body.id }
+            guard !users.isEmpty else {
+                return DefaultResponse(
+                    result: 0,
+                    userMessage: nil,
+                    errorMessage: "No such user"
+                )
+            }
+            
+            let user = users.first!
+            guard user.token != nil else {
+                return DefaultResponse(
+                    result: 0,
+                    userMessage: nil,
+                    errorMessage: "User was not logged in"
+                )
+            }
+            
+            user.token = nil
+            let _ = user.update(on: req.db)
+            return DefaultResponse(
+                result: 1,
+                userMessage: "Successfully logged out!",
+                errorMessage: nil
+            )
+        }
+        return result
+    }
 }
