@@ -40,7 +40,7 @@ extension User: Content {
         self.email = try values.decode(String.self, forKey: .email)
         self.gender = try? values.decode(String.self, forKey: .gender)
         self.bio = try? values.decode(String.self, forKey: .bio)
-        makeMD5Password()
+        self.passwordHash = Crypto.MD5(self.passwordHash)
     }
     
     enum CodingKeys: String, CodingKey {
@@ -53,17 +53,5 @@ extension User: Content {
         case gender
         case creditCard = "credit_card"
         case bio
-    }
-    
-    private func MD5(_ string: String) -> String {
-        let digest = Insecure.MD5.hash(data: string.data(using: .utf8) ?? Data())
-        
-        return digest.map {
-            String(format: "%02hhx", $0)
-        }.joined()
-    }
-    
-    private func makeMD5Password() {
-        self.passwordHash = MD5(self.passwordHash)
     }
 }
