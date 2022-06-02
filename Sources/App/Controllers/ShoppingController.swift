@@ -25,7 +25,7 @@ class ShoppingController {
             )
             return req.eventLoop.makeSucceededFuture(result)
         }
-
+        
         let result = CartItem.query(on: req.db)
             .all()
             .map { (items: [CartItem]) -> DefaultResponse in
@@ -57,6 +57,41 @@ class ShoppingController {
                 )
                 return response
             }
+        return result
+    }
+    
+    func removeFromCart(_ req: Request) throws -> EventLoopFuture<DefaultResponse> {
+        guard let body = try? req.content.decode(RemoveFromCartRequest.self) else {
+            throw Abort(.badRequest)
+        }
+        
+        print(body)
+        
+        let cartItems = CartItem.query(on: req.db).all()
+        let result: EventLoopFuture<DefaultResponse> = cartItems.map { (items: [CartItem]) -> DefaultResponse in
+            let filtered = items.filter { $0.userId == body.userId && $0.productId == body.productId}
+            guard filtered.count == 1 else {
+                return DefaultResponse(
+                    result: 0,
+                    userMessage: nil,
+                    errorMessage: "Error removing from cart"
+                )
+            }
+            
+            let quantityToRemove = body.quantity == nil ? filtered[0].quantity : body.quantity!
+            filtered[0].quantity = max(0, filtered[0].quantity - quantityToRemove)
+            if filtered[0].quantity == 0 {
+                let _ = filtered[0].delete(on: req.db)
+            } else {
+                let _ = filtered[0].update(on: req.db)
+            }
+            let response = DefaultResponse(
+                result: 1,
+                userMessage: "Successfully remove from cart",
+                errorMessage: nil
+            )
+            return response
+        }
         return result
     }
 }

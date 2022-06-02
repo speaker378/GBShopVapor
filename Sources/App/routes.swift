@@ -17,6 +17,7 @@ func routes(_ app: Application) throws {
     app.post("add_review", use: reviewsController.addReview)
     app.post("remove_review", use: reviewsController.removeReview)
     app.post("add_to_cart", use: shoppingController.addToCart)
+    app.post("remove_from_cart", use: shoppingController.removeFromCart)
     
     app.get("hello") { req -> String in
         return "Hello, world!"
