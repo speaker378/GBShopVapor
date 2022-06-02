@@ -17,6 +17,7 @@ public func configure(_ app: Application) throws {
     
     app.migrations.add(User.Create())
     app.migrations.add(Product.Create())
+    app.migrations.add(Review.Create())
     
     // register routes
     try routes(app)
