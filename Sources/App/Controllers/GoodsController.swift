@@ -35,7 +35,7 @@ class GoodsController {
                 result: 1,
                 productName: product.productName,
                 price: product.price,
-                description: product.description,
+                description: product.productDescription,
                 errorMessage: nil
             )
         }
