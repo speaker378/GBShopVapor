@@ -55,8 +55,7 @@ class GoodsController {
                 .map { GoodsListItem(
                     productId: $0.id!,
                     productName: $0.productName,
-                    price: $0.price,
-                    productDescription: $0.productDescription
+                    price: $0.price
                 )
                 }
             guard !filtered.isEmpty else {

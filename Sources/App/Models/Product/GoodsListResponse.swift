@@ -25,12 +25,10 @@ struct GoodsListItem: Content {
     let productId: Int
     let productName: String
     let price: Double
-    let productDescription: String
     
     enum CodingKeys: String, CodingKey {
         case productId = "product_id"
         case productName = "product_name"
         case price
-        case productDescription = "product_description"
     }
 }
