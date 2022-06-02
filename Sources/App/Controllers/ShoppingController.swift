@@ -7,7 +7,6 @@
 
 import FluentPostgresDriver
 import Vapor
-import os
 
 class ShoppingController {
     func addToCart(_ req: Request) throws -> EventLoopFuture<DefaultResponse> {
