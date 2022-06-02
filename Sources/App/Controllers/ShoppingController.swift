@@ -94,4 +94,64 @@ class ShoppingController {
         }
         return result
     }
+    
+    func payCart(_ req: Request) throws -> EventLoopFuture<DefaultResponse> {
+        guard let body = try? req.content.decode(PayCartRequest.self) else {
+            throw Abort(.badRequest)
+        }
+        
+        print(body)
+        
+        let negativeResponse = DefaultResponse(
+            result: 0,
+            userMessage: nil,
+            errorMessage: "Wrong quantity"
+        )
+        let positiveResponse = DefaultResponse(
+            result: 1,
+            userMessage: "Successfully paid the Cart",
+            errorMessage: nil
+        )
+        
+        let result = Product.query(on: req.db)
+            .join(CartItem.self, on: \Product.$id == \CartItem.$productId)
+            .filter(CartItem.self, \.$userId == body.userId)
+            .all()
+            .map { (products: [Product]) -> DefaultResponse in
+                guard !products.isEmpty else {
+                    return DefaultResponse(
+                        result: 0,
+                        userMessage: nil,
+                        errorMessage: "The Cart is empty"
+                    )
+                }
+                
+                var canBuyAllItems = true
+                products.forEach { product in
+                    do {
+                        let cart = try product.joined(CartItem.self)
+                        canBuyAllItems = canBuyAllItems && (product.quantity >= cart.quantity)
+                        print("Quantity: \(product.quantity)")
+                        print("Quantity in cart: \(cart.quantity)")
+                    }
+                    catch _ { }
+                }
+                print(canBuyAllItems)
+                var result: DefaultResponse = negativeResponse
+                if canBuyAllItems {
+                    products.forEach { product in
+                        do {
+                            let cart = try product.joined(CartItem.self)
+                            product.quantity -= cart.quantity
+                            let _ = product.update(on: req.db)
+                            let _ = cart.delete(on: req.db)
+                            result = positiveResponse
+                        }
+                        catch _ { }
+                    }
+                }
+                return result
+            }
+        return result
+    }
 }
