@@ -182,6 +182,7 @@ class ShoppingController {
                     do {
                         let cart = try product.joined(CartItem.self)
                         cartListItems.append(CartListItem(
+                            productId: product.id!,
                             productName: product.productName,
                             price: product.price,
                             quantity: cart.quantity

@@ -22,11 +22,13 @@ struct GetCartResponse: Content {
 }
 
 struct CartListItem: Content {
+    let productId: Int
     let productName: String
     let price: Double
     let quantity: Int
     
     enum CodingKeys: String, CodingKey {
+        case productId = "product_id"
         case productName = "product_name"
         case price
         case quantity
