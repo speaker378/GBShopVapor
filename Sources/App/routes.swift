@@ -19,6 +19,7 @@ func routes(_ app: Application) throws {
     app.post("add_to_cart", use: shoppingController.addToCart)
     app.post("remove_from_cart", use: shoppingController.removeFromCart)
     app.post("pay_cart", use: shoppingController.payCart)
+    app.post("get_cart", use: shoppingController.getCart)
     
     app.get("hello") { req -> String in
         return "Hello, world!"
