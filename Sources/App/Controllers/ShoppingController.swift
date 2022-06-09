@@ -153,4 +153,46 @@ class ShoppingController {
             }
         return result
     }
+    
+    func getCart(_ req: Request) throws -> EventLoopFuture<GetCartResponse> {
+        guard let body = try? req.content.decode(GetCartRequest.self) else {
+            throw Abort(.badRequest)
+        }
+        
+        print(body)
+        
+        let result = Product.query(on: req.db)
+            .join(CartItem.self, on: \Product.$id == \CartItem.$productId)
+            .filter(CartItem.self, \.$userId == body.userId)
+            .all()
+            .map { (products: [Product]) -> GetCartResponse in
+                guard !products.isEmpty else {
+                    return GetCartResponse(
+                        result: 0,
+                        products: nil,
+                        totalPrice: nil,
+                        errorMessage: "The Cart is empty"
+                    )
+                }
+                
+                var cartListItems: [CartListItem] = []
+                var totalPrice: Double = 0
+                
+                products.forEach { product in
+                    do {
+                        let cart = try product.joined(CartItem.self)
+                        cartListItems.append(CartListItem(
+                            productName: product.productName,
+                            price: product.price,
+                            quantity: cart.quantity
+                        ))
+                        totalPrice += product.price * Double(cart.quantity)
+                    }
+                    catch _ { }
+                }
+                
+                return GetCartResponse(result: 1, products: cartListItems, totalPrice: totalPrice, errorMessage: nil)
+        }
+        return result
+    }
 }
