@@ -28,7 +28,7 @@ class ShoppingController {
         let result = CartItem.query(on: req.db)
             .all()
             .map { (items: [CartItem]) -> DefaultResponse in
-                let filtered = items.filter { $0.id == body.productId && $0.userId == body.userId }
+                let filtered = items.filter { $0.productId == body.productId && $0.userId == body.userId }
                 guard filtered.count < 2 else {
                     return DefaultResponse(
                         result: 0,
